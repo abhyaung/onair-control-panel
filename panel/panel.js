@@ -364,6 +364,70 @@
     });
   })();
 
+  // ── install helper ─────────────────────────────────────────────────────────
+  //
+  // iOS provides no way to install a home-screen web app programmatically — no
+  // beforeinstallprompt, no URL scheme, nothing a QR code can trigger. Apple
+  // requires Share > Add to Home Screen by hand. Android Chrome does fire
+  // beforeinstallprompt, so there it really is one tap.
+  //
+  // What this removes is the guesswork: it says which step you are on, and it
+  // catches the trap of opening the link in Chrome on iOS, which silently
+  // cannot install at all and offers no hint that anything is wrong.
+
+  (function () {
+    var standalone = window.matchMedia('(display-mode: standalone)').matches
+                     || window.navigator.standalone === true;
+    if (standalone) return;               // already installed, nothing to say
+
+    var ua = navigator.userAgent;
+    var isIOS = /iPad|iPhone|iPod/.test(ua)
+                || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var iosSafari = isIOS && !/CriOS|FxiOS|EdgiOS/.test(ua);
+    var iosOther = isIOS && !iosSafari;
+
+    var tip = document.createElement('div');
+    tip.className = 'install';
+    var deferred = null;
+
+    function show(html, withButton) {
+      tip.innerHTML = '';
+      var text = document.createElement('span');
+      text.innerHTML = html;
+      tip.appendChild(text);
+      if (withButton) {
+        var btn = document.createElement('button');
+        btn.textContent = 'Install';
+        btn.addEventListener('click', function () {
+          if (!deferred) return;
+          deferred.prompt();
+          deferred.userChoice.then(function () { tip.remove(); });
+        });
+        tip.appendChild(btn);
+      }
+      var close = document.createElement('button');
+      close.className = 'x';
+      close.textContent = '\u00d7';
+      close.setAttribute('aria-label', 'Dismiss');
+      close.addEventListener('click', function () { tip.remove(); });
+      tip.appendChild(close);
+      if (!tip.parentNode) document.body.appendChild(tip);
+    }
+
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferred = e;
+      show('Add onair to your home screen', true);
+    });
+
+    if (iosOther) {
+      show('To install, open this link in <b>Safari</b> — '
+           + 'other iOS browsers cannot add to the home screen.', false);
+    } else if (iosSafari) {
+      show('Install: tap <b>Share</b>, then <b>Add to Home Screen</b>.', false);
+    }
+  })();
+
   // ── clock ──────────────────────────────────────────────────────────────────
 
   function clock() {
