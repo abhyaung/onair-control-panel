@@ -22,7 +22,7 @@ import socket
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, unquote
 
 from . import controls
 
@@ -106,10 +106,23 @@ class Handler(BaseHTTPRequestHandler):
         self._send(code, json.dumps(payload).encode(), CONTENT_TYPES[".json"])
 
     def _authorised(self, query):
+        """Accept the token from a header, the query string, or a cookie.
+
+        Three channels because each fails somewhere: the header needs JS to have
+        found the token already, the query string is lost when a browser
+        bookmarks a bare URL, and the cookie is absent inside an iOS Home Screen
+        app (separate storage container). Together they cover every install path.
+        """
         header = self.headers.get("Authorization", "")
         supplied = header[7:] if header.startswith("Bearer ") else ""
         if not supplied:
             supplied = (query.get("t") or [""])[0]
+        if not supplied:
+            for part in (self.headers.get("Cookie") or "").split(";"):
+                name, _, value = part.strip().partition("=")
+                if name == "onair_token":
+                    supplied = unquote(value)
+                    break
         return bool(supplied) and hmac.compare_digest(supplied, self.server.token)
 
     # ── routes ───────────────────────────────────────────────────────────────

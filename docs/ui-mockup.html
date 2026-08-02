@@ -52,7 +52,14 @@
     height:100%;
     max-width:1250px;
     margin:0 auto;
-    padding:clamp(12px,2vh,22px) clamp(14px,2.2vw,26px);
+    /* Respect the notch / status bar. `viewport-fit=cover` deliberately extends
+       the page under iOS's clock, battery and Wi-Fi, so without these insets the
+       status row renders straight through them. max() keeps sane padding in a
+       normal browser window, where the insets are 0. */
+    padding-top:max(clamp(12px,2vh,22px), env(safe-area-inset-top));
+    padding-bottom:max(clamp(12px,2vh,22px), env(safe-area-inset-bottom));
+    padding-left:max(clamp(14px,2.2vw,26px), env(safe-area-inset-left));
+    padding-right:max(clamp(14px,2.2vw,26px), env(safe-area-inset-right));
     display:flex;
     flex-direction:column;
     gap:clamp(10px,1.6vh,18px);
@@ -282,7 +289,6 @@
   <div class="status">
     <div class="brand"><span class="lamp"></span>ONAIR</div>
     <div class="ctx"><b>Google Meet</b> · 3 participants</div>
-    <div class="clock" id="clock">14:32</div>
   </div>
 
   <!-- hero: the two master switches -->
@@ -467,13 +473,6 @@
     });
   });
 
-  // ── clock ──
-  function clock(){
-    var d = new Date();
-    document.getElementById('clock').textContent =
-      String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-  }
-  clock(); setInterval(clock, 10000);
 })();
 </script>
 </body>

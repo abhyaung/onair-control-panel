@@ -43,7 +43,14 @@
     height:100%;
     max-width:1250px;
     margin:0 auto;
-    padding:clamp(12px,2vh,22px) clamp(14px,2.2vw,26px);
+    /* Respect the notch / status bar. `viewport-fit=cover` deliberately extends
+       the page under iOS's clock, battery and Wi-Fi, so without these insets the
+       status row renders straight through them. max() keeps sane padding in a
+       normal browser window, where the insets are 0. */
+    padding-top:max(clamp(12px,2vh,22px), env(safe-area-inset-top));
+    padding-bottom:max(clamp(12px,2vh,22px), env(safe-area-inset-bottom));
+    padding-left:max(clamp(14px,2.2vw,26px), env(safe-area-inset-left));
+    padding-right:max(clamp(14px,2.2vw,26px), env(safe-area-inset-right));
     display:flex;
     flex-direction:column;
     gap:clamp(10px,1.6vh,18px);
@@ -279,7 +286,7 @@
 
   /* install hint — dismissible, never covers a control */
   .install{
-    position:fixed;left:50%;bottom:14px;transform:translateX(-50%);
+    position:fixed;left:50%;bottom:max(14px, env(safe-area-inset-bottom));transform:translateX(-50%);
     display:flex;align-items:center;gap:12px;
     max-width:min(560px,92vw);
     background:#1c2029;border:1px solid var(--edge);border-radius:var(--r2);

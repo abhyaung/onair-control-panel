@@ -16,14 +16,38 @@
   var WRITE_THROTTLE_MS = 100;  // a drag emits far faster than osascript can run
 
   // ── token ──────────────────────────────────────────────────────────────────
-  // Delivered once via ?t=, then persisted so the Home Screen icon needs no
-  // query string. Stripped from the URL immediately so it stays out of history.
+  //
+  // Kept in three places on purpose, because each one fails somewhere:
+  //
+  //   URL        survives "Add to Home Screen" in browsers that bookmark the
+  //              current address rather than the manifest start_url — Chrome on
+  //              iOS does exactly that.
+  //   localStorage  survives losing the query string, but is per browser AND
+  //              separate again inside an installed Home Screen app on iOS.
+  //   cookie     survives a token-less reload in the same browser, and is sent
+  //              automatically, so it covers loads we never see in JS.
+  //
+  // The URL is deliberately NOT stripped any more. It was, for hygiene, and the
+  // cost was that copying the address or bookmarking it produced an unpairable
+  // link. This is a LAN-only credential already printed in a QR code.
+  function readCookie(name) {
+    var parts = ('; ' + document.cookie).split('; ' + name + '=');
+    return parts.length === 2 ? decodeURIComponent(parts.pop().split(';').shift()) : null;
+  }
+
   var token = new URLSearchParams(location.search).get('t');
+  if (!token) { try { token = localStorage.getItem('onair.token'); } catch (e) {} }
+  if (!token) { token = readCookie('onair_token'); }
+
   if (token) {
     try { localStorage.setItem('onair.token', token); } catch (e) {}
-    history.replaceState(null, '', location.pathname);
-  } else {
-    try { token = localStorage.getItem('onair.token'); } catch (e) { token = null; }
+    // 10 years; a LAN panel should never ask to be paired twice.
+    document.cookie = 'onair_token=' + encodeURIComponent(token)
+      + '; path=/; max-age=315360000; SameSite=Lax';
+    // Keep it in the address bar so bookmarks and shares stay pairable.
+    if (!new URLSearchParams(location.search).get('t')) {
+      history.replaceState(null, '', location.pathname + '?t=' + encodeURIComponent(token));
+    }
   }
 
   var $ = function (sel) { return document.querySelector(sel); };
@@ -421,22 +445,14 @@
     });
 
     if (iosOther) {
-      show('To install, open this link in <b>Safari</b> — '
-           + 'other iOS browsers cannot add to the home screen.', false);
+      // Chrome on iOS *can* install — the option is just hidden behind
+      // expanding the share sheet, which is easy to miss.
+      show('Install: tap <b>Share</b>, scroll down or tap <b>More</b>, '
+           + 'then <b>Add to Home Screen</b>.', false);
     } else if (iosSafari) {
       show('Install: tap <b>Share</b>, then <b>Add to Home Screen</b>.', false);
     }
   })();
-
-  // ── clock ──────────────────────────────────────────────────────────────────
-
-  function clock() {
-    var d = new Date();
-    $('#clock').textContent =
-      String(d.getHours()).padStart(2, '0') + ':' +
-      String(d.getMinutes()).padStart(2, '0');
-  }
-  clock(); setInterval(clock, 10000);
 
   if (!token) {
     banner.textContent = 'Not paired. This browser has no token — each browser '
