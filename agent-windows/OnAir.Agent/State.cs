@@ -24,7 +24,8 @@ namespace OnAir;
 /// </summary>
 public sealed class State
 {
-    private readonly Lock _gate = new();
+    // Plain object: System.Threading.Lock is .NET 9+, this targets net8.0.
+    private readonly object _gate = new();
     private readonly JsonObject _data;
     private long _seq;
 

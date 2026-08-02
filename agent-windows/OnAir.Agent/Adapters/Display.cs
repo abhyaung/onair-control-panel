@@ -79,7 +79,7 @@ public static class Display
 
     public static float? Brightness() => WithMonitor<float>(h =>
         GetMonitorBrightness(h, out var min, out var cur, out var max) && max > min
-            ? (cur - min) * 100f / (max - min)
+            ? (float?)((cur - min) * 100f / (max - min))
             : null);
 
     public static bool SetBrightness(float percent) => WithMonitor<bool>(h =>
@@ -91,7 +91,7 @@ public static class Display
 
     public static float? Volume() => WithMonitor<float>(h =>
         GetVCPFeatureAndVCPFeatureReply(h, VCP_AUDIO_VOLUME, IntPtr.Zero, out var cur, out var max)
-        && max > 0 ? cur * 100f / max : null);
+        && max > 0 ? (float?)(cur * 100f / max) : null);
 
     public static bool SetVolume(float percent) => WithMonitor<bool>(h =>
     {
@@ -104,7 +104,7 @@ public static class Display
     /// <summary>DDC audio mute is an enum: 1 = muted, 2 = unmuted. Not a level.</summary>
     public static bool? Muted() => WithMonitor<bool>(h =>
         GetVCPFeatureAndVCPFeatureReply(h, VCP_AUDIO_MUTE, IntPtr.Zero, out var cur, out _)
-            ? cur == 1
+            ? (bool?)(cur == 1)
             : null);
 
     public static bool SetMuted(bool muted) =>
