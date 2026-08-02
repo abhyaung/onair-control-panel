@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="512" height="512" role="img" aria-label="onair">
+  <rect width="512" height="512" rx="20" fill="#0a0b0d"/>
+  <rect x="10.5" y="10.5" width="75" height="75" rx="14" fill="none" stroke="#252932" stroke-width="1.5"/>
+  <!-- on-air lamp: the panel's whole premise in one mark -->
+  <circle cx="48" cy="38" r="15" fill="none" stroke="#ff3b30" stroke-width="4.5"/>
+  <circle cx="48" cy="38" r="5.5" fill="#ff3b30"/>
+  <rect x="24" y="63" width="48" height="5" rx="2.5" fill="#ff3b30" opacity="0.9"/>
+  <rect x="32" y="74" width="32" height="4" rx="2" fill="#4d535e"/>
+</svg>

@@ -207,6 +207,14 @@
   }
   .pad:active{transform:scale(.94);background:#39404C}
   .pad.mute{grid-column:1 / -1;padding:clamp(9px,1.5vh,14px) 0}
+  /* Constrain the glyph. Without an explicit size it scales to the button,
+     which spans the whole rail — it rendered several times larger than every
+     other icon. */
+  .pad.mute svg{width:clamp(18px,2.5vh,22px);height:clamp(18px,2.5vh,22px)}
+  .pad.mute .off{opacity:0}
+  .pad.mute[data-on="1"]{background:#3a1614;color:#ff7a71}
+  .pad.mute[data-on="1"] .on{opacity:0}
+  .pad.mute[data-on="1"] .off{opacity:1}
   .vfader,.vfader *{touch-action:none}
 
   /* ── button rows ──────────────────────────── */
@@ -326,11 +334,11 @@
 
     <div class="rail">
 
-      <div class="vstepper" data-step="volume" data-action="volume.set" data-v="0">
+      <div class="vstepper" data-step="volume" data-action="volume.set" data-v="53">
         <div class="vtop"><span class="lab">VOLUME</span><span class="pct">53%</span>
           <span class="why"></span></div>
         <div class="vfader">
-          <div class="fill" style="height:0%"></div>
+          <div class="fill" style="height:53%"></div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
         </div>
         <div class="vpads">
@@ -339,11 +347,11 @@
         </div>
       </div>
 
-      <div class="vstepper bright" data-step="brightness" data-action="brightness.set" data-v="0">
+      <div class="vstepper bright" data-step="brightness" data-action="brightness.set" data-v="52">
         <div class="vtop"><span class="lab">BRIGHTNESS</span><span class="pct">52%</span>
           <span class="why"></span></div>
         <div class="vfader">
-          <div class="fill" style="height:0%"></div>
+          <div class="fill" style="height:52%"></div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
         </div>
         <div class="vpads">

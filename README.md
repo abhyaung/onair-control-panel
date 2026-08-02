@@ -1,3 +1,5 @@
+<img src="docs/img/logo.svg" width="76" align="left" alt="">
+
 # onair
 
 Turn a spare tablet or phone into a physical control panel for your computer's
@@ -11,6 +13,8 @@ volume and mute come along too.
 There is no cloud service and no account. The agent runs on your own machine and
 serves the panel over your local network. Nothing leaves your network.
 
+![The onair panel running on an iPad](docs/img/panel.png)
+
 ```
   ┌──────────────────────┐            ┌───────────────────────────┐
   │  iPad / Android /    │   LAN,     │  agent on your Mac or PC  │
@@ -22,40 +26,56 @@ serves the panel over your local network. Nothing leaves your network.
 
 ---
 
-## Setup
+## Install
 
-### 1. Install the agent on your computer
+### The agent, on the computer you want to control
 
-| | |
-|---|---|
-| **macOS** | build from source — see [macOS setup](#macos-setup) below |
-| **Windows** | [`agent-windows/`](agent-windows/) — not built yet |
+**macOS** — one command:
 
-### 2. Pair your tablet
+```sh
+git clone https://github.com/abhyaung/onair-control-panel
+cd onair-control-panel/agent-macos
+./install.sh
+```
 
-Click the **◉** icon in your menu bar → **Pair iPad (QR code)** → scan it with
-the tablet's camera → tap the notification.
+It builds, signs, installs to `/Applications`, launches, and opens the one
+settings pane you have to click yourself. Needs the Xcode command line tools
+(`xcode-select --install`) — nothing else.
 
-The panel opens in the browser and works immediately. The pairing token travels
+**Windows** — not built yet. See [`agent-windows/`](agent-windows/) for the
+API notes if you want to write it.
+
+> **Why there is no download.** macOS refuses to let an *unsigned* app hold
+> Accessibility for the processes it launches, so a downloaded unsigned build
+> fails **silently** — every control looks fine and changes nothing. Building
+> locally creates a stable signing identity, which also means the permission
+> survives rebuilds. A prebuilt, notarised app needs a paid Apple Developer ID.
+
+### Two permissions, once
+
+1. **Accessibility** — System Settings → Privacy & Security → Accessibility →
+   add **OnAir**. The installer opens this pane for you.
+2. **Chrome → View → Developer → Allow JavaScript from Apple Events** — must be
+   clicked by hand; it shows a confirmation dialog.
+
+Run `make doctor` any time for a report on every permission and dependency.
+
+### The panel, on your tablet
+
+Menu-bar **◉** → **Pair iPad (QR code)** → scan it with the tablet's camera →
+tap the notification. The panel opens and works immediately; the token travels
 in the link, so there is nothing to type.
 
-### 3. Add it to the home screen
+Then add it to the home screen, so it runs full-screen and keeps the display
+awake:
 
-So it opens full-screen with no browser chrome, and keeps the screen awake.
-
-- **iPhone / iPad** — tap **Share**, then **Add to Home Screen**.
+- **iPhone / iPad** — **Share** → **Add to Home Screen**.
   In Chrome the option is behind **Share → More**.
-- **Android** — tap the **Install** button the panel offers, or Chrome's
-  ⋮ menu → **Install app**.
-
-Tap the new icon. It opens already paired.
+- **Android** — tap the **Install** button the panel offers.
 
 > **Pair each browser once.** The token is stored per browser, and an installed
-> home-screen app counts as its own browser on iOS. If a panel ever says it is
-> not paired, open the QR link again from the menu-bar icon — that is all it
-> needs.
-
----
+> home-screen app counts as its own browser on iOS. If a panel says it is not
+> paired, open the QR link again — that is all it needs.
 
 ## Using it
 
@@ -82,35 +102,7 @@ meeting you are in, and shows a warning when something needs attention.
 
 ---
 
-## macOS setup
-
-```sh
-cd agent-macos
-make cert     # once: creates a self-signed signing identity
-make app      # builds and signs build/OnAir.app
-```
-
-Drag `build/OnAir.app` into `/Applications`, launch it, then grant it
-**Accessibility** in System Settings → Privacy & Security.
-
-Then enable **Chrome → View → Developer → Allow JavaScript from Apple Events**.
-This must be clicked by hand; it shows a confirmation dialog. Meeting controls
-cannot work without it.
-
-Run `make doctor` at any time for a report on every permission and dependency.
-
-**Why you build it yourself.** macOS will not let an unsigned app hold
-Accessibility for the processes it launches, so an unsigned build fails
-*silently* — every control looks fine and changes nothing. `make cert` creates a
-stable local identity, which also means the permission survives rebuilds.
-Shipping a prebuilt app to other people requires a paid Developer ID, so there
-is no download here.
-
-Optional: [MonitorControl](https://github.com/MonitorControl/MonitorControl) for
-external-display brightness and volume — macOS exposes no API of its own for
-those.
-
-### If something is not working
+## If something is not working
 
 | Symptom | Cause |
 |---|---|
