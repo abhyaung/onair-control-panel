@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>OnAir</AssemblyName>
+    <RootNamespace>OnAir</RootNamespace>
+    <!-- Single self-contained exe: no runtime for the user to install. -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The panel is shared verbatim with the macOS agent; never fork it. -->
+    <None Include="..\..\panel\**\*" CopyToOutputDirectory="PreserveNewest"
+          LinkBase="panel" />
+    <None Include="..\..\protocol\config.default.json" CopyToOutputDirectory="PreserveNewest"
+          Link="config.default.json" />
+  </ItemGroup>
+</Project>

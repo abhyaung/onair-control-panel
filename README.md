@@ -50,8 +50,10 @@ cd onair-control-panel/agent-macos
 ```
 </details>
 
-**Windows** — not built yet. See [`agent-windows/`](agent-windows/) for the
-API notes if you want to write it.
+**Windows** — a C# agent exists in [`agent-windows/`](agent-windows/) but has
+**never been run**; it was written without a Windows machine to test on.
+Hardware controls (mic, camera state, display brightness and volume) are
+implemented; meeting controls are not, pending a browser extension.
 
 > **Why there is no download.** macOS refuses to let an *unsigned* app hold
 > Accessibility for the processes it launches, so a downloaded unsigned build
@@ -157,7 +159,7 @@ server-side; no input from the panel reaches a shell.
 panel/           the web app — shared verbatim by every agent
 protocol/        API.md, the contract; default config
 agent-macos/     Python agent + Swift menu-bar app
-agent-windows/   not built yet
+agent-windows/   C# agent — written, untested
 docs/            architecture, UI mockup
 ```
 
