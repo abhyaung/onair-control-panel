@@ -11,6 +11,7 @@
 
 import Cocoa
 import CoreImage
+import ApplicationServices
 
 final class Agent {
     private var process: Process?
@@ -75,12 +76,56 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var qrWindow: NSWindow?
     private var checksWindow: NSWindow?
 
+    /// Ask macOS to show its own Accessibility prompt.
+    ///
+    /// The grant itself cannot be automated — TCC is SIP-protected, so no
+    /// installer, root, or admin password can add an app to the list. Apple
+    /// allows only a human in System Settings, which is the point: software
+    /// that could grant itself input-synthesis rights would make the
+    /// protection meaningless.
+    ///
+    /// What this *can* do is show the system dialog whose button opens the
+    /// right pane directly, then notice the moment the switch is flipped, so
+    /// the user never has to hunt or restart anything.
+    private func requestAccessibility() {
+        let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue()
+        let trusted = AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
+        guard !trusted else { return }
+
+        // Poll for the grant; restarting the agent is what makes it take effect.
+        var waited = 0.0
+        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] timer in
+            waited += 2.0
+            if AXIsProcessTrusted() {
+                timer.invalidate()
+                self?.agent.stop()
+                self?.agent.start()
+                self?.notify("Accessibility granted",
+                             "Volume, brightness and mute are now live.")
+            } else if waited > 300 {
+                timer.invalidate()
+            }
+        }
+    }
+
+    private func notify(_ title: String, _ body: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = body
+        alert.alertStyle = .informational
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        alert.runModal()
+        NSApp.setActivationPolicy(.accessory)
+    }
+
     func applicationDidFinishLaunching(_ note: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem.button?.title = "◉"
         statusItem.button?.toolTip = "onair"
         agent.start()
         rebuildMenu()
+        requestAccessibility()
         Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
             self?.rebuildMenu()
         }

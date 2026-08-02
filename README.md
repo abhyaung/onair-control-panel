@@ -30,17 +30,25 @@ serves the panel over your local network. Nothing leaves your network.
 
 ### The agent, on the computer you want to control
 
-**macOS** — one command:
+**macOS** — paste one line:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/abhyaung/onair-control-panel/main/install.sh | sh
+```
+
+It clones the repo, builds, signs, installs to `/Applications`, launches the
+app, and asks macOS to show the Accessibility prompt. Needs the Xcode command
+line tools (`xcode-select --install`) — nothing else.
+
+<details>
+<summary>Prefer to clone it yourself</summary>
 
 ```sh
 git clone https://github.com/abhyaung/onair-control-panel
 cd onair-control-panel/agent-macos
 ./install.sh
 ```
-
-It builds, signs, installs to `/Applications`, launches, and opens the one
-settings pane you have to click yourself. Needs the Xcode command line tools
-(`xcode-select --install`) — nothing else.
+</details>
 
 **Windows** — not built yet. See [`agent-windows/`](agent-windows/) for the
 API notes if you want to write it.
@@ -51,12 +59,20 @@ API notes if you want to write it.
 > locally creates a stable signing identity, which also means the permission
 > survives rebuilds. A prebuilt, notarised app needs a paid Apple Developer ID.
 
-### Two permissions, once
+### Two switches you must flip yourself
 
-1. **Accessibility** — System Settings → Privacy & Security → Accessibility →
-   add **OnAir**. The installer opens this pane for you.
-2. **Chrome → View → Developer → Allow JavaScript from Apple Events** — must be
-   clicked by hand; it shows a confirmation dialog.
+The app prompts for both and takes you to the right place, but macOS requires a
+human for each. Neither can be automated: the permission database is protected
+by System Integrity Protection precisely so that software cannot grant itself
+the right to synthesise input.
+
+1. **Accessibility** — the app shows the system prompt on first launch. Click
+   **Open System Settings**, switch **OnAir** on. It notices immediately and
+   restarts the agent for you. *Without it: volume, brightness and mute stay
+   read-only.*
+2. **Chrome → View → Developer → Allow JavaScript from Apple Events** — click
+   it once and accept the confirmation. *Without it: meeting controls cannot
+   work.*
 
 Run `make doctor` any time for a report on every permission and dependency.
 
