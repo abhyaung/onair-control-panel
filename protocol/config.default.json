@@ -1,0 +1,69 @@
+{
+  "_comment": "Selectors live here so a Meet/Teams/Zoom UI change is a one-line fix. State is read from the button's action verb: a button saying 'turn off camera' means the camera is currently ON. Only mic and camera are driven \u2014 they are the controls every platform shares.",
+  "host": "auto",
+  "port": 8770,
+  "poll": {
+    "fast_seconds": 1.0,
+    "slow_seconds": 5.0
+  },
+  "sites": {
+    "meet": {
+      "label": "Google Meet",
+      "url_match": "meet.google.com",
+      "enabled": true
+    },
+    "teams": {
+      "label": "Microsoft Teams",
+      "url_match": "teams.live.com",
+      "enabled": true
+    },
+    "teams_work": {
+      "label": "Microsoft Teams",
+      "url_match": "teams.microsoft.com",
+      "enabled": true
+    },
+    "zoom": {
+      "label": "Zoom",
+      "url_match": "app.zoom.us",
+      "enabled": true
+    }
+  },
+  "mic": {
+    "restore_level": 75
+  },
+  "labels": {
+    "_comment": "on = control is currently live; off = currently muted/stopped.",
+    "mic": {
+      "on": [
+        "turn off microphone",
+        "turn off mic",
+        "mute mic",
+        "mute microphone",
+        "mute my microphone"
+      ],
+      "off": [
+        "turn on microphone",
+        "turn on mic",
+        "unmute mic",
+        "unmute microphone",
+        "unmute my microphone"
+      ]
+    },
+    "cam": {
+      "on": [
+        "turn off camera",
+        "turn camera off",
+        "stop video",
+        "turn off my video",
+        "stop my video"
+      ],
+      "off": [
+        "turn on camera",
+        "turn camera on",
+        "start video",
+        "turn on my video",
+        "start my video"
+      ]
+    }
+  }
+}

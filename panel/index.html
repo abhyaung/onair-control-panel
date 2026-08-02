@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="onair">
+<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="/panel.css">
+<title>onair</title>
+</head>
+<body>
+
+<div class="panel">
+
+  <div class="status">
+    <div class="brand"><span class="lamp" id="lamp"></span>ONAIR</div>
+    <div class="ctx" id="ctx"><b>—</b></div>
+    <div class="clock" id="clock">--:--</div>
+  </div>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="body">
+
+    <div class="main">
+  <div class="hero">
+
+    <div class="tile" data-s="unknown" data-ctl="mic" data-action="mic.toggle">
+      <svg class="glyph" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="18" y="6" width="12" height="22" rx="6"/>
+        <path d="M12 22a12 12 0 0 0 24 0"/>
+        <path d="M24 34v8"/><path d="M17 42h14"/>
+        <path class="slash" d="M8 8 40 40" stroke-width="3"/>
+      </svg>
+      <div class="state"><span class="dot"></span><span class="txt">—</span></div>
+      <div class="name">MICROPHONE</div>
+    </div>
+
+    <div class="tile" data-s="unknown" data-ctl="camera" data-action="camera.toggle">
+      <svg class="glyph" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="13" width="27" height="22" rx="5"/>
+        <path d="M31 24l13-8v16l-13-8z"/>
+        <path class="slash" d="M8 8 40 40" stroke-width="3"/>
+      </svg>
+      <div class="state"><span class="dot"></span><span class="txt">—</span></div>
+      <div class="name">CAMERA</div>
+
+    </div>
+
+  </div>
+
+    </div>
+
+    <div class="rail">
+
+      <div class="vstepper" data-step="volume" data-action="volume.set" data-v="0">
+        <div class="vtop"><span class="lab">VOLUME</span><span class="pct">—</span>
+          <span class="why"></span></div>
+        <div class="vfader">
+          <div class="fill" style="height:0%"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
+        </div>
+        <div class="vpads">
+          <button class="pad" data-d="1">+</button>
+          <button class="pad" data-d="-1">−</button>
+        </div>
+      </div>
+
+      <div class="vstepper bright" data-step="brightness" data-action="brightness.set" data-v="0">
+        <div class="vtop"><span class="lab">BRIGHTNESS</span><span class="pct">—</span>
+          <span class="why"></span></div>
+        <div class="vfader">
+          <div class="fill" style="height:0%"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+        </div>
+        <div class="vpads">
+          <button class="pad" data-d="1">+</button>
+          <button class="pad" data-d="-1">−</button>
+        </div>
+      </div>
+
+
+      <button class="pad mute" id="mute" title="Mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path class="on" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="on" d="M19 5a9 9 0 0 1 0 14"/><path class="off" d="M22 9l-6 6M16 9l6 6"/></svg></button>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="/panel.js"></script>
+</body>
+</html>

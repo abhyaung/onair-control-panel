@@ -1,0 +1,9 @@
+# Built locally by `make`. A binary downloaded from a release is quarantined by
+# Gatekeeper; one compiled on the user's machine is not.
+agent-macos/agent/bin/mediakey
+build/
+agent-macos/build/
+
+__pycache__/
+*.pyc
+.DS_Store

@@ -1,0 +1,9 @@
+{
+  "name": "onair",
+  "short_name": "onair",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0a0b0d",
+  "theme_color": "#0a0b0d",
+  "start_url": "/"
+}

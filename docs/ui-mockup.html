@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>onair — control panel mockup</title>
+<style>
+  :root{
+    --bg:#0a0b0d;
+    --panel:#14161b;
+    --panel-hi:#1b1e25;
+    --edge:#252932;
+    --edge-hi:#333846;
+    --text:#e9ebef;
+    --dim:#79808d;
+    --dimmer:#4d535e;
+    --hot:#ff3b30;
+    --hot-deep:#7d1510;
+    --amber:#ffb020;
+    --ok:#30d158;
+    --r:10px;   /* tiles */
+    --r2:7px;   /* keys, faders, pads */
+  }
+
+  /* Nothing on a control panel is text to be selected. iOS needs all four:
+     the unprefixed rule alone still lets Safari fire the long-press callout and
+     magnifier — which is exactly what the hold-to-repeat pads and the 1s HARD
+     CUT hold trigger. touch-action also kills double-tap zoom and the 300ms
+     click delay; .fader's own `touch-action:none` still wins on specificity. */
+  *{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+    -webkit-user-select:none;
+    user-select:none;
+    -webkit-touch-callout:none;
+    touch-action:manipulation;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font:400 16px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    user-select:none;
+    overflow:hidden;
+  }
+
+  .panel{
+    height:100%;
+    max-width:1250px;
+    margin:0 auto;
+    padding:clamp(12px,2vh,22px) clamp(14px,2.2vw,26px);
+    display:flex;
+    flex-direction:column;
+    gap:clamp(10px,1.6vh,18px);
+  }
+
+  /* ── status bar ───────────────────────────── */
+  .status{
+    display:flex;align-items:center;gap:14px;
+    flex:0 0 auto;
+    padding:0 4px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:9px;
+    font-weight:700;letter-spacing:.16em;font-size:13px;
+  }
+  .lamp{width:8px;height:8px;background:var(--ok)}
+  .ctx{
+    display:flex;align-items:center;gap:8px;
+    margin-left:auto;
+    font-size:13px;color:var(--dim);
+    background:var(--panel);
+    border:1px solid var(--edge);
+    border-radius:var(--r2);
+    padding:7px 14px;
+  }
+  .ctx b{color:var(--text);font-weight:600}
+  .clock{font-variant-numeric:tabular-nums;font-size:13px;color:var(--dim);min-width:46px;text-align:right}
+
+  /* ── hero tiles ───────────────────────────── */
+  .hero{
+    flex:1 1 auto;min-height:0;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:clamp(12px,1.8vw,20px);
+    min-height:0;
+  }
+  .tile{
+    position:relative;
+    border-radius:var(--r);
+    border:1px solid var(--edge);
+    background:var(--panel);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:clamp(6px,1.2vh,14px);
+    cursor:pointer;
+    transition:transform .09s ease, border-color .18s, background .22s;
+    overflow:hidden;
+  }
+  .tile:active{transform:scale(.985)}
+  .tile .glyph{width:clamp(48px,7.5vh,80px);height:clamp(48px,7.5vh,80px);color:var(--dim);transition:color .25s}
+  .tile .name{
+    font-size:clamp(11px,1.5vh,13px);letter-spacing:.22em;font-weight:700;
+    color:var(--dimmer);transition:color .25s;
+  }
+  .tile .state{
+    display:flex;align-items:center;gap:9px;
+    font-size:clamp(19px,3.4vh,30px);font-weight:700;letter-spacing:.03em;
+  }
+  .tile .dot{width:10px;height:10px;background:var(--dimmer)}
+  /* live (hot) */
+  .tile[data-s="live"]{border-color:#5d1b17;background:#1c0e0f}
+  .tile[data-s="live"] .glyph{color:var(--hot)}
+  .tile[data-s="live"] .state{color:var(--hot)}
+  .tile[data-s="live"] .name{color:#a8564f}
+  .tile[data-s="live"] .dot{background:var(--hot);animation:breathe 2.1s ease-in-out infinite}
+  @keyframes breathe{0%,100%{opacity:1}50%{opacity:.3}}
+
+  /* off (safe) */
+  .tile[data-s="off"] .state{color:var(--dim)}
+  .tile[data-s="off"] .glyph{color:var(--dimmer)}
+
+  /* unknown / unavailable */
+  .tile[data-s="unknown"]{border-color:#4a3a12;background:#181510}
+  .tile[data-s="unknown"] .glyph,
+  .tile[data-s="unknown"] .state{color:var(--amber)}
+  .tile[data-s="unknown"] .dot{background:var(--amber)}
+  .tile[data-s="unknown"] .name{color:#8a7233}
+
+  .slash{opacity:0;transition:opacity .2s}
+  .tile[data-s="off"] .slash{opacity:1}
+
+
+  /* ── layout: hero left, faders in a tall right rail ─────────────────────── */
+  /* Vertical faders get the full height of the panel as travel, so a 1% step is
+     a real distance instead of a few pixels. Horizontal ones were ~4px per
+     percent; these are roughly triple that. */
+  .body{flex:1 1 auto;display:flex;gap:clamp(12px,1.8vw,20px);min-height:0}
+  .main{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;min-height:0}
+  .rail{
+    flex:0 0 clamp(150px,17vw,196px);
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr auto;      /* faders share a row, so both are equal */
+    gap:clamp(8px,1.2vw,12px);
+    min-height:0;
+  }
+  .vstepper{display:flex;flex-direction:column;gap:clamp(5px,.8vh,8px);min-height:0}
+  .vstepper .vtop{display:flex;flex-direction:column;align-items:center;gap:1px}
+  .vstepper .lab{
+    font-size:9px;letter-spacing:.16em;font-weight:700;color:#7b828f;
+  }
+  .vstepper .pct{
+    font-size:clamp(13px,1.9vh,16px);font-weight:600;
+    font-variant-numeric:tabular-nums;color:#e9ebef;
+  }
+  .vstepper .why{
+    font-size:8px;letter-spacing:.08em;font-weight:600;color:var(--dimmer);
+    text-transform:uppercase;text-align:center;
+  }
+
+  .vfader{
+    position:relative;flex:1 1 auto;min-height:0;
+    border-radius:var(--r2);background:#272C35;border:none;
+    overflow:hidden;cursor:pointer;touch-action:none;
+    display:flex;align-items:flex-end;justify-content:center;
+    padding-bottom:clamp(9px,1.4vh,14px);
+    transition:transform .16s cubic-bezier(.2,.9,.3,1.15);
+  }
+  .vfader .fill{
+    position:absolute;left:0;right:0;bottom:0;height:50%;
+    background:#8AB4F8;transition:height .11s ease;
+  }
+  .vstepper.bright .vfader .fill{background:#FDD663}
+  .vfader.grab{transform:scaleX(1.05)}
+  .vfader.grab .fill{transition:none}
+  .vfader svg{
+    position:relative;z-index:1;pointer-events:none;
+    width:clamp(19px,2.6vh,23px);height:clamp(19px,2.6vh,23px);
+    color:#12151A;transition:color .15s;
+  }
+  .vfader[data-low="1"] svg{color:#98A0AD}
+  .vstepper.readonly .vfader{opacity:.55}
+  .vstepper.readonly .pad{opacity:.3}
+  .pad:disabled{opacity:.3}
+
+  /* Stacked, not side by side: one column doubles the height of each target,
+     which matters more than compactness on a panel poked with a fingertip.
+     Plus on top matches the fader it sits under — up is more. */
+  .vpads{display:grid;grid-template-columns:1fr;gap:clamp(5px,.7vh,8px)}
+  .pad{
+    border:none;border-radius:var(--r2);background:#272C35;color:#cdd3dc;
+    padding:clamp(10px,1.7vh,16px) 0;
+    font:600 clamp(14px,2vh,17px)/1 -apple-system,sans-serif;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:transform .08s, background .13s;
+  }
+  .pad:active{transform:scale(.94);background:#39404C}
+  .pad.mute{grid-column:1 / -1;padding:clamp(9px,1.5vh,14px) 0}
+  .vfader,.vfader *{touch-action:none}
+
+  /* ── button rows ──────────────────────────── */
+  .row{flex:0 0 auto}
+  .rowhead{
+    display:flex;align-items:center;gap:10px;
+    font-size:10px;letter-spacing:.2em;font-weight:700;color:var(--dimmer);
+    margin:0 4px 8px;
+  }
+  .rowhead::after{content:"";flex:1;height:1px;background:var(--edge)}
+
+
+  .key{
+    border-radius:var(--r2);
+    border:1px solid var(--edge);
+    background:var(--panel);
+    color:var(--text);
+    padding:clamp(9px,1.5vh,15px) 10px;
+    display:flex;flex-direction:column;align-items:center;gap:7px;
+    font:inherit;font-size:clamp(11px,1.4vh,13px);font-weight:600;
+    cursor:pointer;
+    transition:transform .09s, border-color .16s, background .16s;
+  }
+  .key svg{width:clamp(19px,2.7vh,24px);height:clamp(19px,2.7vh,24px);color:var(--dim)}
+  .key:active{transform:scale(.96);border-color:var(--edge-hi);background:var(--panel-hi)}
+  .key[data-on="1"]{border-color:#2c4a6b;background:#111d29}
+  .key[data-on="1"] svg{color:#59a6ff}
+  .key[data-on="1"] span{color:#8ec2ff}
+  /* sharing is an "exposed" state — red, same family as ON AIR */
+  .key.share[data-on="1"]{border-color:#5d1b17;background:#1c0e0f}
+  .key.share[data-on="1"] svg{color:var(--hot)}
+  .key.share[data-on="1"] span{color:#ff7a71}
+  .key.danger svg{color:#c2564e}
+  .key:disabled{opacity:.35;cursor:default}
+
+  /* hard cut — hold to fire */
+  .cut{
+    position:relative;
+    border:1px solid #59201c;
+    background:#170c0d;
+    border-radius:var(--r2);
+    display:flex;align-items:center;justify-content:center;gap:11px;
+    cursor:pointer;overflow:hidden;
+    transition:transform .09s;
+  }
+  .cut:active{transform:scale(.97)}
+  .cut .fill{
+    position:absolute;inset:0;width:0%;
+    background:var(--hot);opacity:.42;
+  }
+  .cut .lbl{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .cut .lbl strong{font-size:clamp(12px,1.6vh,14px);letter-spacing:.12em;color:#ff7a71}
+  .cut .lbl small{font-size:10px;letter-spacing:.1em;color:#9b5a54}
+  .cut svg{position:relative;width:22px;height:22px;color:#ff7a71}
+  .cut.fired{animation:flash .45s ease}
+  @keyframes flash{0%,100%{background:#170c0d}40%{background:var(--hot)}}
+
+  /* mockup ribbon */
+  .ribbon{
+    position:fixed;top:0;right:0;
+    background:#20242c;color:#8d95a3;
+    font-size:9px;letter-spacing:.14em;font-weight:600;
+    padding:4px 10px;
+    z-index:9;
+  }
+  @media (max-width:820px){
+    .hero{grid-template-columns:1fr}
+    body{overflow:auto}
+    .panel{height:auto;min-height:100%}
+  }
+</style>
+</head>
+<body>
+
+<div class="ribbon">MOCKUP · TAP TO TOGGLE</div>
+
+<div class="panel">
+
+  <!-- status bar -->
+  <div class="status">
+    <div class="brand"><span class="lamp"></span>ONAIR</div>
+    <div class="ctx"><b>Google Meet</b> · 3 participants</div>
+    <div class="clock" id="clock">14:32</div>
+  </div>
+
+  <!-- hero: the two master switches -->
+  <div class="body">
+
+    <div class="main">
+  <div class="hero">
+
+    <div class="tile" data-s="live" data-ctl="mic">
+      <svg class="glyph" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="18" y="6" width="12" height="22" rx="6"/>
+        <path d="M12 22a12 12 0 0 0 24 0"/>
+        <path d="M24 34v8"/><path d="M17 42h14"/>
+        <path class="slash" d="M8 8 40 40" stroke-width="3"/>
+      </svg>
+      <div class="state"><span class="dot"></span><span class="txt">ON AIR</span></div>
+      <div class="name">MICROPHONE</div>
+    </div>
+
+    <div class="tile" data-s="off" data-ctl="cam">
+      <svg class="glyph" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="13" width="27" height="22" rx="5"/>
+        <path d="M31 24l13-8v16l-13-8z"/>
+        <path class="slash" d="M8 8 40 40" stroke-width="3"/>
+      </svg>
+      <div class="state"><span class="dot"></span><span class="txt">OFF</span></div>
+      <div class="name">CAMERA</div>
+
+    </div>
+
+  </div>
+
+  <!-- meeting controls -->
+    </div>
+
+    <div class="rail">
+
+      <div class="vstepper" data-step="volume" data-action="volume.set" data-v="0">
+        <div class="vtop"><span class="lab">VOLUME</span><span class="pct">53%</span>
+          <span class="why"></span></div>
+        <div class="vfader">
+          <div class="fill" style="height:0%"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
+        </div>
+        <div class="vpads">
+          <button class="pad" data-d="1">+</button>
+          <button class="pad" data-d="-1">−</button>
+        </div>
+      </div>
+
+      <div class="vstepper bright" data-step="brightness" data-action="brightness.set" data-v="0">
+        <div class="vtop"><span class="lab">BRIGHTNESS</span><span class="pct">52%</span>
+          <span class="why"></span></div>
+        <div class="vfader">
+          <div class="fill" style="height:0%"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+        </div>
+        <div class="vpads">
+          <button class="pad" data-d="1">+</button>
+          <button class="pad" data-d="-1">−</button>
+        </div>
+      </div>
+
+
+      <button class="pad mute" id="mute" title="Mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path class="on" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="on" d="M19 5a9 9 0 0 1 0 14"/><path class="off" d="M22 9l-6 6M16 9l6 6"/></svg></button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+(function(){
+  // ── hero tiles: cycle live → off (long-press shows the unknown state) ──
+  var LABEL = {live:"ON AIR", off:"OFF", unknown:"NO SIGNAL"};
+  document.querySelectorAll('.tile').forEach(function(t){
+    t.addEventListener('click', function(){
+      var s = t.dataset.s === 'live' ? 'off' : 'live';
+      t.dataset.s = s;
+      t.querySelector('.txt').textContent = LABEL[s];
+    });
+    // demo: double-tap a tile to preview the unavailable state
+    t.addEventListener('dblclick', function(){
+      t.dataset.s = 'unknown';
+      t.querySelector('.txt').textContent = LABEL.unknown;
+    });
+  });
+
+  // ── toggle keys ──
+  document.querySelectorAll('.key[data-toggle]').forEach(function(k){
+    k.addEventListener('click', function(){
+      var on = k.dataset.on !== '1';
+      k.dataset.on = on ? '1' : '0';
+      // share is a two-step start / one-tap stop — the label says which half you get
+      if (k.classList.contains('share')){
+        k.querySelector('span').textContent = on ? 'Stop sharing' : 'Share screen';
+      }
+    });
+  });
+
+  // ── hard cut: hold to fire ──
+  var cut = document.getElementById('cut'), fill = document.getElementById('fill');
+  var timer = null, start = 0, HOLD = 1000;
+  function tick(){
+    var p = Math.min((Date.now() - start) / HOLD, 1);
+    fill.style.width = (p * 100) + '%';
+    if (p >= 1){ release(true); return; }
+    timer = requestAnimationFrame(tick);
+  }
+  function press(e){ e.preventDefault(); start = Date.now(); timer = requestAnimationFrame(tick); }
+  function release(fired){
+    if (timer) cancelAnimationFrame(timer);
+    timer = null; fill.style.width = '0%';
+    if (fired === true){
+      cut.classList.add('fired');
+      setTimeout(function(){ cut.classList.remove('fired'); }, 450);
+      document.querySelectorAll('.tile').forEach(function(t){
+        t.dataset.s = 'off';
+        t.querySelector('.txt').textContent = LABEL.off;
+      });
+    }
+  }
+  cut.addEventListener('pointerdown', press);
+  cut.addEventListener('pointerup', release);
+  cut.addEventListener('pointerleave', release);
+  cut.addEventListener('pointercancel', release);
+
+  // ── steppers: tap to step, hold to ramp (macOS native 1/16 = 6.25%) ──
+  var STEP = 6.25;
+  document.querySelectorAll('.vstepper').forEach(function(sp){
+    var pct   = sp.querySelector('.pct'),
+        fill  = sp.querySelector('.fill'),
+        fader = sp.querySelector('.fader');
+
+    function render(v){
+      sp.dataset.v = v;
+      pct.textContent = Math.round(v) + '%';
+      fill.style.height = v + '%';
+      // below ~15% the fill no longer reaches the icon — flip it light
+      fader.dataset.low = v < 15 ? '1' : '0';
+    }
+    function set(v){ render(Math.max(0, Math.min(100, v))); }
+    function apply(d){ set(parseFloat(sp.dataset.v) + d * STEP); }
+
+    // ── drag to scrub ──
+    // Real build throttles outbound writes to ~100ms and commits the
+    // final value on release — one osascript per pixel would melt.
+    // Relative drag, not absolute jump-to-position: touching only grabs, and
+    // sliding moves the level by the distance travelled. Delta is measured from
+    // the previous move, so hitting 0 or 100 and sliding back responds at once
+    // instead of crossing a dead zone equal to the overshoot.
+    var dragging = false, lastY = 0;
+    fader.addEventListener('pointerdown', function(e){
+      e.preventDefault();
+      dragging = true; lastY = e.clientY;
+      fader.classList.add('grab');
+      fader.setPointerCapture(e.pointerId);
+    });
+    fader.addEventListener('pointermove', function(e){
+      if (!dragging) return;
+      var h = fader.getBoundingClientRect().height;
+      var delta = ((lastY - e.clientY) / h) * 100;   // up = more
+      if (!delta) return;
+      lastY = e.clientY;
+      set(parseFloat(sp.dataset.v) + delta);
+    });
+    ['pointerup','pointercancel'].forEach(function(ev){
+      fader.addEventListener(ev, function(){ dragging = false; fader.classList.remove('grab'); });
+    });
+
+    sp.querySelectorAll('.pad').forEach(function(pad){
+      var d = parseInt(pad.dataset.d, 10), delay = null, rep = null;
+      function stop(){ clearTimeout(delay); clearInterval(rep); delay = rep = null; }
+      pad.addEventListener('pointerdown', function(e){
+        e.preventDefault();
+        apply(d);
+        delay = setTimeout(function(){ rep = setInterval(function(){ apply(d); }, 110); }, 400);
+      });
+      ['pointerup','pointerleave','pointercancel'].forEach(function(ev){
+        pad.addEventListener(ev, stop);
+      });
+    });
+  });
+
+  // ── clock ──
+  function clock(){
+    var d = new Date();
+    document.getElementById('clock').textContent =
+      String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+  clock(); setInterval(clock, 10000);
+})();
+</script>
+</body>
+</html>
